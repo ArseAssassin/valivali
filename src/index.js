@@ -7,17 +7,20 @@ let promise =           (fn) => new Promise(fn),
                             (value) => typeof value !== typeName && 'invalidType'
                         ),
     asString =          (fn) => (it = '') => fn(it.toString()),
+    asNumber =          (fn, radix=10) => (it) => fn(Number(it, radix)),
 
-    countErrors =       (it) => it.length !== undefined
-                                    ? it.length
-                                    : (() => {
-                                        var n = 0;
-                                        for (var s in it) {
-                                            n += countErrors(it[s]);
-                                        }
+    countErrors =       (it) => {
+                            if (typeof it === 'object') {
+                                var n = 0
+                                for (var s in it) {
+                                    n += countErrors(it[s])
+                                }
 
-                                        return n;
-                                    })(),
+                                return n
+                            } else {
+                                return 1
+                            }
+                        },
     valid =             (it) => countErrors(it) === 0,
 
     transform =         (validator, fn) => (it) => validator(it).then(fn),
@@ -41,7 +44,7 @@ let promise =           (fn) => new Promise(fn),
                                 a[s] = b[s];
                             return a;
                         }, {}),
-    withMessage =       (msg, fn) => transform(fn, (errors) => !valid(errors) && msg),
+    withMessage =       (msg, fn) => transform(fn, (errors) => !valid(errors) && error(msg) || errors),
 
     validators = {
         any: {
@@ -57,9 +60,10 @@ let promise =           (fn) => new Promise(fn),
             array:          () => sync((it) => !Array.isArray(it) && 'invalidType'),
             date:           () => sync((it) => !(it instanceof Date) && 'invalidType')
         },
-        parsers: {
-            parseNumber:    (fn, radix=10) => (value) => fn(Number(value, radix)),
-            parseDate:      (fn) => (value) => fn(new Date(value)),
+        converters: {
+            asDate:         (fn) => (value) => fn(new Date(value)),
+            asString,
+            asNumber
         },
         compositors: {
             not:            (fn) => (value) => fn(value).then((it) => error(valid(it) && 'inverse')),
@@ -86,7 +90,6 @@ let promise =           (fn) => new Promise(fn),
                                     })
                                 )
                             }),
-            asString,
             withMessage,
             compose
         },
@@ -102,20 +105,24 @@ let promise =           (fn) => new Promise(fn),
                                 validators.string.minLength(min),
                                 validators.string.maxLength(max)
                             ),
-            regexp:         (re) => sync((it = '') => !it.match(re) && 'regexp'),
-            alpha:          () => validators.regexp(/^[A-z]*$/),
-            num:            () => validators.regexp(/^[0-9]*$/),
-            alphaNum:       () => validators.regexp(/^[A-z0-9]*$/),
+            regexp:         (re) => sync(asString((it) => !it.match(re) && 'regexp')),
+            alpha:          () => validators.string.regexp(/^[A-z]*$/),
+            num:            () => validators.string.regexp(/^[0-9]*$/),
+            alphaNum:       () => validators.string.regexp(/^[A-z0-9]*$/),
         },
         number: {
-            min:            (n) => sync((it) => it < n && 'min'),
-            max:            (n) => sync((it) => it > n && 'max'),
+            min:            (n) => compose(validators.number.decimal(), sync(asNumber((it) => it < n && 'min'))),
+            max:            (n) => compose(validators.number.decimal(), sync(asNumber((it) => it > n && 'max'))),
             range:          (min, max) => compose(
                                 validators.number.min(min),
                                 validators.number.max(max)
                             ),
-            integer:        () => sync((it) => it % 1 !== 0 && 'integer'),
-            number:         () => sync((it) => !isFinite(it) && 'number')
+            integer:        () => sync(asNumber((it) => it % 1 !== 0 && 'integer')),
+            decimal:        () => sync(asNumber((it) => !isFinite(it) && 'number'))
+        },
+        date: {
+            isDate:         () => sync((it) => !isFinite(it) && 'isDate'),
+            range:          (min, max) => validators.number.range(min, max)
         },
         collections: {
             field:          (name, validator) => (it) => validator(it[name]),
@@ -142,7 +149,7 @@ let promise =           (fn) => new Promise(fn),
                                         values.pop()
 
                                         if (!values.length)
-                                            resolve(normalizeArrays(...errors))
+                                            resolve(errors)
                                     })
                                 )
                             })

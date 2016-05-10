@@ -4,47 +4,59 @@ let vali = require('../src/'),
     { sync } = vali.helpers,
     { required } = vali.any
 
+const
+    TRUTHY =    [true, 'foo', {}, [], 1, new Date],
+    FALSY =     [false, '', null, undefined, NaN],
+    STRING =    ['foo', '', 'Lorem ipsum dolor sit amet'],
+    NUMBER =    [0, NaN, 1000, 0.0, 1.5, 1, Infinity],
+    DATE =      [new Date],
+    ARRAY =     [[], [1, 2, 3]],
+    OBJECT =    [{}, null].concat(DATE, ARRAY),
+    ALL =       TRUTHY.concat(FALSY, STRING, NUMBER, OBJECT, DATE, ARRAY)
+
 let test =  (name, args, valid, invalid) => ({ name, args, valid, invalid }),
     dummy = (result) => sync(() => result),
     str =   (value) => typeof value === 'function'
                 ? '[Function]'
-                : JSON.stringify(value)
+                : JSON.stringify(value),
+    allBut = (other) => r.without(other, ALL)
+
 
 let tests = [
     test(
         'any.required', [],
-        ['a', 1, true, [], {}],
-        ['', 0, false, null, undefined]
+        TRUTHY,
+        FALSY
     ),
     test(
         'any.empty', [],
-        ['', 0, false, null, undefined],
-        ['a', 1, true, [], {}]
+        FALSY,
+        TRUTHY
     ),
     test(
         'types.string', [],
-        ['', 'foo'],
-        [1, {}, [], undefined, null, false, true]
+        STRING,
+        allBut(STRING)
     ),
     test(
         'types.number', [],
-        [0, NaN, 1000],
-        ['1', {}, [], undefined, null, false, true]
+        NUMBER,
+        allBut(NUMBER)
     ),
     test(
         'types.object', [],
-        [{}, [], new Date],
-        ['1', undefined, false, true]
+        OBJECT,
+        allBut(OBJECT)
     ),
     test(
         'types.array', [],
-        [[]],
-        ['1', new Date, {}, undefined, false, true]
+        ARRAY,
+        allBut(ARRAY)
     ),
     test(
         'types.date', [],
-        [new Date],
-        ['1', {}, [], undefined, false, true]
+        DATE,
+        allBut(DATE)
     ),
     test(
         'helpers.sync', [() => 'fail'],
@@ -67,6 +79,31 @@ let tests = [
         ['bfoo', 'foobar']
     ),
     test(
+        'string.between', [3, 6],
+        ['foo', 'foobar'],
+        ['fo', 'foobarbaz', '']
+    ),
+    test(
+        'string.alpha', [],
+        ['foo', ''],
+        ['1', '23.24', 'hello.', 'hello world']
+    ),
+    test(
+        'string.num', [],
+        ['1', '', '2', '4000'],
+        ['hello.', 'hello world']
+    ),
+    test(
+        'string.alphaNum', [],
+        ['1', '', '23', '4000', 'foo', 'qwerty123456'],
+        ['hello!', 'hello world', '$']
+    ),
+    test(
+        'string.regexp', [/^foo$/],
+        ['foo'],
+        ['foob', 'fo', '']
+    ),
+    test(
         'collections.field', ['a', required()],
         [{a: 'foo'}],
         [{b: 'foo'}]
@@ -74,7 +111,7 @@ let tests = [
     test(
         'collections.object', [{a: required(), b: required()}],
         [{a: 'foo', b: 'bar'}],
-        [{}]
+        [{}, {a: 'foo'}, {b: 'bar'}]
     ),
     test(
         'collections.array', [required()],
@@ -85,8 +122,52 @@ let tests = [
         'compositors.or', [sync((it) => it % 2 !== 0), sync((it) => it % 3 !== 0)],
         [2, 3, 4, 6, 9],
         [5, 11, 13]
-    )
-
+    ),
+    test(
+        'compositors.not', [dummy('wat')],
+        ALL,
+        []
+    ),
+    test(
+        'compositors.not', [dummy()],
+        [],
+        ALL
+    ),
+    test(
+        'number.min', [5],
+        [5, 9, '5', '42.20'],
+        [-4, 0, 4.9, NaN, 'not a number', Infinity]
+    ),
+    test(
+        'number.max', [5],
+        [-4, 0, 4.9, 5, '5'],
+        [9, '42.20', NaN, 'not a number']
+    ),
+    test(
+        'number.integer', [],
+        [-4, 0, 5, 9, '5'],
+        [4.9, '42.20', NaN, 'not a number']
+    ),
+    test(
+        'number.decimal', [],
+        [-4, 4.9, '42.20', 0, 5, 9, '5'],
+        [NaN, 'not a number']
+    ),
+    test(
+        'converters.asDate', [vali.date.isDate()],
+        ['1900-1-1', '01.01.1900', '1900-1-1 0:00'],
+        [NaN, 'not a number']
+    ),
+    test(
+        'date.isDate', [],
+        [new Date],
+        [NaN, 'not a number']
+    ),
+    test(
+        'date.range', [new Date('1900-01-01'), new Date('2000-01-01')],
+        [new Date('1950-1-1')],
+        [new Date]
+    ),
 ]
 
 describe('valivali', () => {

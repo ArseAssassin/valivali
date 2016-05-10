@@ -84,7 +84,7 @@ vali.number.integer()(0.4).then(...)
 dates
 
 ```js
-vali.parsers.parseDate(vali.number.range(new Date('1900-01-01'), new Date('2000-01-01')))(new Date).then(...)
+vali.converters.asDate(vali.number.range(new Date('1900-01-01'), new Date('2000-01-01')))(new Date).then(...)
 // ['max']
 ```
 
@@ -115,3 +115,7 @@ vali.helpers.valid({foo: ['error']}) // false
 ## Links
 
 * [API Docs](docs.md)
+
+## License
+
+valivali is released under [MIT License](https://opensource.org/licenses/MIT)

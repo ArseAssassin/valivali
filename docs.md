@@ -20,14 +20,17 @@
 * `max(n)`: allows only values less than or equal to `n`
 * `range(mn, mx)`: same as `compose(min(mn), max(mx))`
 * `integer()`: allows only integer values
-* `number()`: allows only numeric values
+* `decimal()`: allows only numeric values
+
+## valivali.date
+
+* `isDate()`: combine with `converters.asDate` to validate that value can be parsed as a JavaScript date
 
 ## valivali.compositors
 
 * `compose(...validators)`: composes all validators into a single one, appending their results to a single array
 * `not(validator)`: creates an inverse validator, passing only when value is not valid and returning `['inverse']` when the validator doesn't pass
 * `or(...validators)`: creates a validator that passes if value passes any of the given validators
-* `asString(validator)`: creates a validator that converts value to string using `.toString()` before invoking validator - `undefined` coverts to an empty string
 * `withMessage(msg, validator)`: replaces validator's error message with `msg`
 
 ## valivali.collections
@@ -45,10 +48,11 @@
 * `array()`: accepts only arrays - uses `Array.isArray`
 * `date()`: accepts only dates using `instanceof Date`
 
-## valivali.parsers
+## valivali.converters
 
-* `parseNumber(validator, radix=10)`: converts value to number using `Number` before applying validator
-* `parseDate(validator)`: parses value as a date using `new Date(value)` before invoking validator
+* `asNumber(validator, radix=10)`: converts value to number using `Number` before applying validator
+* `asDate(validator)`: parses value as a date using `new Date(value)` before invoking validator
+* `asString(validator)`: creates a validator that converts value to string using `.toString()` before invoking validator - `undefined` coverts to an empty string
 
 ## valivali.helpers
 
