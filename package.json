@@ -1,29 +1,21 @@
 {
   "name": "valivali",
   "version": "1.0.0",
-  "description": "Damn simple validation for JavaScript",
+  "description": "Dead simple validation for JavaScript",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --compilers js:babel-register"
+    "test": "mocha --compilers js:babel-register",
+    "build": "node node_modules/babel-cli/bin/babel.js src/ -d lib/"
   },
   "author": "Tuomas Kanerva",
   "license": "MIT",
   "devDependencies": {
-    "babel-cli": "6.8.0",
     "babel-core": "6.8.0",
     "babel-preset-es2016": "6.0.11",
     "babel-register": "6.8.0",
-    "babelify": "7.3.0",
-    "browserify": "13.0.1",
     "chai": "3.5.0",
-    "gulp": "3.9.1",
-    "gulp-sourcemaps": "1.6.0",
-    "jasmine": "2.4.1",
-    "jasmine-node": "1.14.5",
-    "ramda": "0.21.0",
-    "should": "8.3.1",
-    "vinyl-buffer": "1.0.0",
-    "vinyl-source-stream": "1.1.0",
-    "watchify": "3.7.0"
+    "ramda": "0.21.0"
+  },
+  "dependencies": {
   }
 }

@@ -1,7 +1,8 @@
 let r = require('ramda')
 
-let vali = require('../lib/'),
-    { sync } = vali.helpers
+let vali = require('../src/'),
+    { sync } = vali.helpers,
+    { required } = vali.any
 
 let test =  (name, args, valid, invalid) => ({ name, args, valid, invalid }),
     dummy = (result) => sync(() => result),
@@ -11,12 +12,12 @@ let test =  (name, args, valid, invalid) => ({ name, args, valid, invalid }),
 
 let tests = [
     test(
-        'required', [],
+        'any.required', [],
         ['a', 1, true, [], {}],
         ['', 0, false, null, undefined]
     ),
     test(
-        'empty', [],
+        'any.empty', [],
         ['', 0, false, null, undefined],
         ['a', 1, true, [], {}]
     ),
@@ -66,22 +67,22 @@ let tests = [
         ['bfoo', 'foobar']
     ),
     test(
-        'collections.field', ['a', vali.required()],
+        'collections.field', ['a', required()],
         [{a: 'foo'}],
         [{b: 'foo'}]
     ),
     test(
-        'collections.fields', [{a: vali.required(), b: vali.required()}],
+        'collections.object', [{a: required(), b: required()}],
         [{a: 'foo', b: 'bar'}],
         [{}]
     ),
     test(
-        'collections.array', [vali.required()],
+        'collections.array', [required()],
         [[1, 2, 3], ['a', 'b']],
         [[undefined, 3, 4], [false, null]]
     ),
     test(
-        'conditionals.or', [sync((it) => it % 2 !== 0), sync((it) => it % 3 !== 0)],
+        'compositors.or', [sync((it) => it % 2 !== 0), sync((it) => it % 3 !== 0)],
         [2, 3, 4, 6, 9],
         [5, 11, 13]
     )
@@ -95,11 +96,11 @@ describe('valivali', () => {
                 def = name + '(' + args.map(str).join(', ') + ')'
 
             describe(def, () => {
-                valid.forEach((value) => it('should accept ' + str(value), () => 
+                valid.forEach((value) => it('should accept ' + str(value), () =>
                     fn(value).then((errors) => vali.helpers.valid(errors).should.be.true)
                 ))
 
-                invalid.forEach((value) => it('should not accept ' + str(value), () => 
+                invalid.forEach((value) => it('should not accept ' + str(value), () =>
                     fn(value).then((errors) => vali.helpers.valid(errors).should.be.false)
                 ))
             })
@@ -132,21 +133,21 @@ describe('valivali', () => {
 
     describe('.compositors', () => {
         describe('.withMessage', () => {
-            it('should resolve to given message when validator fails', () => 
-                vali.compositors.withMessage('newMessage', 
+            it('should resolve to given message when validator fails', () =>
+                vali.compositors.withMessage('newMessage',
                     dummy('fail')()
                         .then((it) => it.should.deep.equal(['newMessage'])))
             )
 
-            it('should return empty array when validator passes', () => 
-                vali.compositors.withMessage('newMessage', 
+            it('should return empty array when validator passes', () =>
+                vali.compositors.withMessage('newMessage',
                     dummy(false)()
                         .then((it) => it.should.deep.equal([])))
             )
         })
 
         describe('.compose', () => {
-            it('should merge errors from two validators', () => 
+            it('should merge errors from two validators', () =>
                 vali.compositors.compose(dummy('foo'), dummy('bar'))()
                 .then((it) => it.should.deep.equal(['foo', 'bar']))
             )
