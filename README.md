@@ -93,13 +93,13 @@ and even complex objects
 ```js
 vali.collections.object({
     name: vali.any.required(),
-    empty: vali.compositors.or(vali.any.empty(), vali.string.regexp(/.+@.+\..+/)),
+    email: vali.compositors.or(vali.any.empty(), vali.string.regexp(/.+@.+\..+/)),
     purchases: vali.collections.array(vali.collections.object({
         itemId: vali.types.number(),
         count: vali.types.number()
     }))
-}).then(...)
-// ['max']
+})({ name: '', email: '', purchases: [{itemId: 100, count: 1}] }).then(...)
+// { name: ['required'], email: [], purchases: [{itemId: [], count: []}]}
 ```
 
 valivali also helps you figure out which results are valid
