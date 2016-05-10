@@ -4,7 +4,7 @@
   "description": "Dead simple validation for JavaScript",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --compilers js:babel-register",
+    "test": "./node_modules/mocha/bin/mocha --compilers js:babel-register",
     "build": "node node_modules/babel-cli/bin/babel.js src/ -d lib/"
   },
   "author": "Tuomas Kanerva",
@@ -14,7 +14,8 @@
     "babel-preset-es2016": "6.0.11",
     "babel-register": "6.8.0",
     "chai": "3.5.0",
-    "ramda": "0.21.0"
+    "ramda": "0.21.0",
+    "mocha": "2.4.5"
   },
   "dependencies": {
   }
