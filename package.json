@@ -2,7 +2,7 @@
   "name": "valivali",
   "version": "1.0.0",
   "description": "Dead simple validation for JavaScript",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha --compilers js:babel-register",
     "build": "node node_modules/babel-cli/bin/babel.js src/ -d lib/"

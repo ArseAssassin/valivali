@@ -137,9 +137,9 @@ let promise =           (fn) => new Promise(fn),
                                         ))
                                     )(s)
 
-                                return transform(compose(...o), (values) => assign(...values))
+                                return transform(compose(module.exports.types.object(), ...o), (values) => assign(...values))
                             },
-            array:          (validator) => (value) => promise((resolve) => {
+            array:          (validator) => compose(module.exports.types.array(), (value) => promise((resolve) => {
                                 let errors = [],
                                     values = [...value]
 
@@ -152,7 +152,7 @@ let promise =           (fn) => new Promise(fn),
                                             resolve(errors)
                                     })
                                 )
-                            })
+                            }))
         }
     }
 
