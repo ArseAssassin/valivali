@@ -13,108 +13,98 @@ valivali is a dead simple validation library for
 ```js
 let vali = require('valivali')
 
-let validator = vali.collections.object({
-    name: vali.compositors.compose(vali.any.required(), vali.types.string(), vali.string.minLength(3)),
-    email: vali.compositors.compose(vali.any.required(), vali.types.string(), vali.string.minLength(5))
+let validator = vali.object({
+    name: vali.required(),
+    email: vali.required()
 })
 
 let form = {}
 
-validator(form).then(...)
-// {name: ['required', 'type', 'minLength'], email: ['required', 'type', 'minLength']}
+validator(form)
+// { name: [ 'required' ], email: [ 'required' ] }
 ```
 
 ## Quickstart
 
-`npm i --save -E valivali`
+`npm i --save valivali`
 
 `let vali = require('valivali')`
 
 ## Usage
 
-A validator is a function that returns a promise resolving to a data structure containing errors
+A validator is a function that takes a value as an argument and returns a data structure with errors.
 
 ```js
-vali.any.required()(undefined).then(...)
-// ['required']
+> vali.required()('')
+[ 'required' ]
+> vali.required()('this is valid')
+[]
 ```
 
-This data structure can also be an object
+To check the validity of a result you can use `isValid`
 
 ```js
-vali.collections.object({foo: vali.any.required()})({}).then(...)
-// {foo: ['required']}
+> vali.isValid(vali.required()(''))
+false
+> vali.isValid(vali.required()('this is valid'))
+true
 ```
 
 Validators are composable
 
 ```js
-vali.compositors.compose(vali.any.required(), vali.types.string())(undefined).then(...)
-// ['required', 'invalidType']
+> let validator = vali.any(vali.number(), vali.string())
+undefined
+> validator('string')
+[]
+> validator(1)
+[]
+> validator({})
+[ 'number', 'string' ]
+
+
+> vali.all(vali.required(), vali.number())(0)
+[ 'required' ]
+> vali.all(vali.required(), vali.number())(1)
+[]
+
+
+> vali.object({ x: vali.required(), y: vali.number() })({ x: 0, y: 3 })
+{ x: [ 'required' ], y: [] }
 ```
 
-customizable
+can include complex logic
 
 ```js
-vali.compositors.withMessage('my error message', vali.any.required())(undefined).then(...)
-// ['my error message']
+> validator = vali.when(vali.number(), vali.eq(2), vali.required())
+[Function]
+> validator(2)
+[]
+> validator(1)
+[ 'eq' ]
+> validator('')
+[ 'required' ]
 ```
 
-and extendable
+and can be customized for displaying error messages
 
 ```js
-vali.compositors.compose(vali.any.required(), (value) => new Promise(...))(undefined).then(...)
-// ['required', 'my custom validator']
+> vali.object({ email: vali.message(vali.required(), (errors) => 'Email is a required field') })({})
+{ email: 'Email is a required field' }
 ```
 
-You can validate strings
+## Creating custom validators
+
+Since a validator is just a function that returns a data structure with errors, defining custom validators is as simple as defining functions
 
 ```js
-vali.string.minLength(4)('foo').then(...)
-// ['minLength']
+> let isEven = (it) => it % 2 === 0 ? [] : ['isEven']
+undefined
+> vali.isValid(isEven(3))
+false
+> vali.isValid(isEven(4))
+true
 ```
-
-numbers
-
-```js
-vali.number.integer()(0.4).then(...)
-// ['integer']
-```
-
-dates
-
-```js
-vali.converters.asDate(vali.number.range(new Date('1900-01-01'), new Date('2000-01-01')))(new Date).then(...)
-// ['max']
-```
-
-and even complex objects
-
-```js
-vali.collections.object({
-    name: vali.any.required(),
-    email: vali.compositors.or(vali.any.empty(), vali.string.regexp(/.+@.+\..+/)),
-    purchases: vali.collections.array(vali.collections.object({
-        itemId: vali.types.number(),
-        count: vali.types.number()
-    }))
-})({ name: '', email: '', purchases: [{itemId: 100, count: 1}] }).then(...)
-// { name: ['required'], email: [], purchases: [{itemId: [], count: []}]}
-```
-
-valivali also helps you figure out which results are valid
-
-```js
-vali.helpers.valid([]) // true
-vali.helpers.valid(['error']) // false
-
-vali.helpers.valid({foo: []}) // true
-vali.helpers.valid({foo: ['error']}) // false
-```
-
-## Links
-
-* [API Docs](docs.md)
 
 ## License
 
