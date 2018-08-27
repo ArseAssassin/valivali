@@ -1,6 +1,6 @@
 {
   "name": "valivali",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Dead simple validation for JavaScript",
   "main": "lib/index.js",
   "scripts": {
